@@ -1,0 +1,752 @@
+---
+title: "Adeel Arhid - Econometrics Project"
+author: "Adeel Arshid"
+date: "2022-12-16"
+output:html_document
+
+---
+
+```{r}
+getwd()
+setwd("~/Desktop/Econometrics Project")
+library(ipumsr)
+require(stargazer)
+require(AER)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(jtools)
+library(ggpubr)
+library(permute)
+library(lattice)
+library(vegan)
+library(nlme)
+library(ordinal)
+library(tidyverse)
+library(sjPlot)
+library(lme4)
+library(AER)
+library(MASS)
+library(mvtnorm)
+library(stargazer)
+library(dplyr)
+library(e1071)
+library(flexdashboard)
+library(foreign)
+library(haven)
+library(highr)
+library(janitor)
+library(knitr)
+library(markdown)
+library(rmarkdown)
+library(skimr)
+library(tidyverse)
+
+
+
+
+ddi <- read_ipums_ddi("nhis_00004.xml")
+data <- read_ipums_micro(ddi)
+
+
+```
+
+
+```{r}
+attach(data)
+library(jtools)
+model_temp1 <- lm(HINOTCOVE ~ SEXORIEN + SEX + RACENEW + CITIZEN + EMPSTAT + EDUC)
+summary(model_temp1)
+plot(model_temp1)
+abline(model_temp1)
+print(model_temp1)
+xtabs(model_temp1)
+summ(model_temp1, confint = TRUE, digits = 3)
+summ(model_temp1, robust = "HC1")
+summ(model_temp1, confint = TRUE, digits = 3)
+stargazer(model_temp1, type ="text")
+
+```
+
+:
+
+```{r}
+model_temp2 <- lm(HINOTCOVE ~ OCC + EDUC)
+summary(model_temp2)
+model_temp3 <- lm(EMPHI ~ CITIZEN + USBORN + EMPSTAT)
+summary(model_temp3)
+stargazer(model_temp2, type ="text")
+tab_model(model_temp2)
+```
+
+
+```{r}
+model_temp5 <- lm(HINOTCOVE ~ SEX)
+summary(model_temp5)
+plot(model_temp5)
+print(model_temp5)
+xtabs(model_temp5)
+stargazer(model_temp5, type ="text")
+tab_model(model_temp5)
+```
+
+
+
+```{r}
+model_temp7 <- lm(HINOTCOVE ~ CITIZEN)
+summary(model_temp7)
+plot(model_temp7)
+stargazer(model_temp7, type ="text")
+tab_model(model_temp7)
+```
+
+
+
+```{r}
+linear_model0 <- lm(HINOTCOVE ~ RACENEW,CITIZEN)
+summary(linear_model0)
+plot(linear_model0)
+tab_model(linear_model0)
+```
+
+
+```{r}
+data$HINOTCOVE <- as.factor(data$HINOTCOVE)
+levels(data$HINOTCOVE) <- c("has health insurance coverage","no health insurance coverage","dont know")
+
+data$CITIZEN <- as.factor(data$CITIZEN)
+levels(data$CITIZEN) <- c("No not US citizen","yes US citizen","refused","NA","dont know")
+
+model101 <- lm(HINOTCOVE ~ CITIZEN)
+summary(model101)
+tab_model(model101)
+
+```
+
+
+```{r}
+
+data$RACENEW <- as.factor(data$RACENEW)
+levels(data$RACENEW) <- c("white","Black","Aleut Alaskan","American Indian","Asian","Other","refused","not ascertained","unknown")
+
+data$HINOTCOVE <- as.factor(data$HINOTCOVE)
+levels(data$HINOTCOVE) <- c("has health insurance coverage","no health insurance coverage","dont know")
+
+model_temp6 <- lm(HINOTCOVE ~ RACENEW)
+summary(model_temp6)
+plot(model_temp6)
+tab_model(model_temp6)
+
+```
+
+
+
+```{r}
+plot(HINOTCOVE ~ EDUC, 
+     data = data,
+     main = "Scatterplot of Health Coverage and Education", 
+     xlab = "EDUCATION (X)",
+     ylab = "Healthcoverage (Y)")
+```
+
+
+
+
+```{r}
+mod1 <- lm(HINOTCOVE ~ EMPSTAT, data = data)
+summary(mod1)
+tab_model(mod1)
+```
+
+
+
+```{r}
+mod2 <- lm(EDUC ~ EMPSTAT, data = data)
+summary(mod2)
+plot(mod2)
+abline(mod2)
+coef(mod2)
+summary(coef(mod2))
+tab_model(mod2)
+
+plot(x = data$EMPSTAT, 
+     y = data$HINOTCOVE,
+     main = "Employment based on Health coverage",
+     xlab = "Type of Employment",
+     ylab = "Health Coverage",
+     pch = 20,
+     ylim = c(-0.4, 1.4),
+     cex.main = 0.8)
+
+abline(h = 1, lty = 2, col = "darkred")
+abline(h = 0, lty = 2, col = "darkred")
+text(2.5, 0.9, cex = 0.8, "Has Health Coverage")
+text(2.5, -0.1, cex= 0.8, "No Healthcoverage")
+
+abline(mod1, 
+       lwd = 1.8, 
+       col = "steelblue")
+
+
+
+
+```
+
+
+
+```{r}
+#GLM Regression
+
+data$HINOTCOVE <- as.numeric(data$HINOTCOVE)
+levels(data$HINOTCOVE) <- c("has health insurance coverage","no health insurance coverage","dont know")
+
+data$EMPSTAT<-as.numeric(data$EMPSTAT)
+levels(data$EMPSTAT)<-c("not employed","employed","dont know","NIU")
+
+data$REGION <- as.numeric(data$REGION)
+levels(data$REGION) <- c("Northeast","Midwest","South","West")
+
+data$CITIZEN <- as.numeric(data$CITIZEN)
+levels(data$CITIZEN) <- c("No not US citizen","yes US citizen","refused","NA","dont know")
+
+
+model_logit <- glm(HINOTCOVE ~ EDUC + EMPSTAT + REGION + CITIZEN )
+summary(model_logit)
+plot(model_logit)
+tab_model(model_logit)
+```
+
+
+
+
+
+
+```{r}
+gt3 <- glm(HINOTCOVE ~ EDUC, family = binomial)
+summary(gt)
+tab_model(gt)
+
+```
+
+
+```{r}
+data$CITIZEN <- as.factor(data$CITIZEN)
+levels(data$CITIZEN) <- c("No not US citizen","yes US citizen","refused","NA","dont know")
+data$HINOTCOVE <- as.factor(data$HINOTCOVE)
+levels(data$HINOTCOVE) <- c("has health insurance coverage","no health insurance coverage","dont know")
+data$EDUC <- as.factor(data$EDUC)
+levels(data$EDUC) <- c("NIU","no school","less than hs","12th grade no diploma","HS diploma","GED","some college","assoc deg in tech or occ","assoc deg academic","bachelors","masters","professional degree","doctoral","refused","dont know")
+data$EMPSTAT<-as.factor(data$EMPSTAT)
+levels(data$EMPSTAT)<-c("not employed","employed","dont know","NIU")
+
+attach(data)
+library(tidyverse)
+library(sjPlot)
+library(lme4)
+
+g63 <- glm(HINOTCOVE ~ EDUC + CITIZEN + EMPSTAT, family = binomial)
+summary(g63)
+head(g63)
+tab_model(g63)
+
+
+
+```
+
+
+```{r}
+fitg <- glm(HINOTCOVE ~ SEX + EDUC + OCC)
+summary(fitg)
+plot(fitg)
+summ(fitg)
+tab_model(fitg)
+```
+
+
+
+```{r}
+#anavo test
+anova(g, gt, test= "Chisq") 
+
+tab_model(g63, gt3)
+
+
+p = plot_model(g63, type = 'pred')
+plot_grid(p)
+
+
+p = plot_model(gt3, type = 'pred')
+plot_grid(p)
+
+```
+
+
+
+
+
+```{r}
+#anavo test
+anova(g, gt, test= "Chisq") 
+
+tab_model(g, gt)
+
+
+p = plot_model(g, type = 'pred')
+plot_grid(p)
+
+
+p = plot_model(gt, type = 'pred')
+plot_grid(p)
+
+```
+
+
+
+
+
+```{r}
+ggplot(data, aes(x=HINOTCOVE,
+                 y = EDUC,
+                 col = HINOTCOVE)) +
+  geom_point()+
+  geom_smooth(method= "lm", se = FALSE)
+
+
+
+ggplot(data, aes(x=HINOTCOVE,
+                 y = EDUC,
+                 col = HINOTCOVE)) +
+  geom_point()
+
+
+
+ggplot(data, aes(x=HINOTCOVE,
+                 y = EDUC,
+                 col = HINOTCOVE)) +
+  geom_point()+
+  geom_abline(aes(intercept = 1.050950,
+                  slope= 0.254135,
+                  col="Chinstrap"))
+
+```
+
+
+
+```{r}
+#AS NUMERIC . NOTE: RUN THIS CODE  TO LM.
+
+
+data$SEX <- as.numeric(data$SEX)
+levels(data$SEX) <- c("Male","Female","Refused","dont know")
+
+data$SEXORIEN <- as.numeric(data$SEXORIEN)
+levels(data$SEXORIEN) <- c("NIU","Lesbian or gay","straight","bisexual","something else","dont know","refused","NA")
+
+data$REGION <- as.numeric(data$REGION)
+levels(data$REGION) <- c("Northeast","Midwest","South","West")
+
+data$MARST <- as.numeric(data$MARST)
+levels(data$MARST) <- c("NIU","Married","Married spouse not there","Married spouse NA","Widowed","Divorced","Separated","never married","unknown")
+
+data$RACENEW <- as.numeric(data$RACENEW)
+levels(data$RACENEW) <- c("white","Black","Aleut Alaskan","American Indian","Asian","Other","refused","not ascertained","unknown")
+
+data$EMPFT <- as.numeric(data$EMPFT)
+levels(data$EMPFT) <- c("NIU","parttime","fulltime","refused","NA","dont know")
+
+data$EDUC <- as.numeric(data$EDUC)
+levels(data$EDUC) <- c("NIU","no school","less than hs","12th grade no diploma","HS diploma","GED","some college","assoc deg in tech or occ","assoc deg academic","bachelors","masters","professional degree","doctoral","refused","dont know")
+
+data$CITIZEN <- as.numeric(data$CITIZEN)
+levels(data$CITIZEN) <- c("No not US citizen","yes US citizen","refused","NA","dont know")
+
+data$EMPSTAT <- as.numeric(data$EMPSTAT)
+levels(data$EMPSTAT) <- c("NIU","Employed","not employed","dont know")
+
+data$EMPHI <- as.numeric(data$EMPHI)
+levels(data$EMPHI) <- c("NIU","no workplace did not offer health insurance","yes workplace offer health insurance","refused","NA","dont know")
+
+data$HINOTCOVE <- as.numeric(data$HINOTCOVE)
+levels(data$HINOTCOVE) <- c("has health insurance coverage","no health insurance coverage","dont know")
+
+data$EMPSTAT<-as.numeric(data$EMPSTAT)
+levels(data$EMPSTAT)<-c("not employed","employed","dont know","NIU")
+```
+
+
+
+```{r}
+# AS FACTORS. NOTE: RUN THIS CODE FOE GLM, GRAPHS AND PLOT
+
+
+data$SEX <- as.factor(data$SEX)
+levels(data$SEX) <- c("Male","Female","Refused","dont know")
+
+data$SEXORIEN <- as.factor(data$SEXORIEN)
+levels(data$SEXORIEN) <- c("NIU","Lesbian or gay","straight","bisexual","something else","dont know","refused","NA")
+
+data$REGION <- as.factor(data$REGION)
+levels(data$REGION) <- c("Northeast","Midwest","South","West")
+
+data$MARST <- as.factor(data$MARST)
+levels(data$MARST) <- c("NIU","Married","Married spouse not there","Married spouse NA","Widowed","Divorced","Separated","never married","unknown")
+
+data$RACENEW <- as.factor(data$RACENEW)
+levels(data$RACENEW) <- c("white","Black","Aleut Alaskan","American Indian","Asian","Other","refused","not ascertained","unknown")
+
+data$EMPFT <- as.factor(data$EMPFT)
+levels(data$EMPFT) <- c("NIU","parttime","fulltime","refused","NA","dont know")
+
+data$EDUC <- as.factor(data$EDUC)
+levels(data$EDUC) <- c("NIU","no school","less than hs","12th grade no diploma","HS diploma","GED","some college","assoc deg in tech or occ","assoc deg academic","bachelors","masters","professional degree","doctoral","refused","dont know")
+
+data$CITIZEN <- as.factor(data$CITIZEN)
+levels(data$CITIZEN) <- c("No not US citizen","yes US citizen","refused","NA","dont know")
+
+data$EMPSTAT <- as.factor(data$EMPSTAT)
+levels(data$EMPSTAT) <- c("NIU","Employed","not employed","dont know")
+
+data$EMPHI <- as.factor(data$EMPHI)
+levels(data$EMPHI) <- c("NIU","no workplace did not offer health insurance","yes workplace offer health insurance","refused","NA","dont know")
+
+data$HINOTCOVE <- as.factor(data$HINOTCOVE)
+levels(data$HINOTCOVE) <- c("has health insurance coverage","no health insurance coverage","dont know")
+
+data$EMPSTAT<-as.factor(data$EMPSTAT)
+levels(data$EMPSTAT)<-c("not employed","employed","dont know","NIU")
+
+```
+
+
+
+
+
+
+```{r}
+#1 Health Insurance By US BORN
+
+sjPlot::tab_xtab(var.row=data$USBORN, 
+                 var.col =data$HINOTCOVE,
+                 title = "Health Insurance By USBORN",
+                 show.row.prc = TRUE)
+
+ggplot(data,
+       aes(x= USBORN, y=HINOTCOVE)) +
+  geom_bar(stat = "identity", width=0.5, color="Green") + labs(x = "USBORN", y = "Health Insurance Status")+
+  geom_line(color = "firebrick", linetype = "dotted", size = .3) +
+  ggtitle("Health Insurance By USBORN")
+
+```
+
+
+
+
+```{r}
+#2 Health Insurance By Citizenship
+
+sjPlot::tab_xtab(var.row=data$CITIZEN, 
+                 var.col =data$HINOTCOVE,
+                 title = "Health Insurance By Citizenship",
+                 show.row.prc = TRUE)
+
+ggplot(data,
+       aes(x= CITIZEN, y=HINOTCOVE)) +
+  geom_bar(stat = "identity", width=0.5, color="Green",) + labs(x = "Citizenship", y = "Health Insurance Status")+
+  geom_line(color = "firebrick", linetype = "dotted", size = .3) +
+  ggtitle("Health Insurance By Citizenship")
+
+
+```
+
+
+
+
+```{r}
+#3 Health Insurance By EDUCATION
+
+
+sjPlot::tab_xtab(var.row=data$EDUC, 
+                 var.col =data$HINOTCOVE,
+                 title = "Health Insurance By Education",
+                 show.row.prc = TRUE)
+
+
+ggplot(data,
+       aes(x= EDUC, y=HINOTCOVE)) +
+  geom_bar(stat = "identity", width=0.5, color="red") + labs(x = "EDUCATION", y = "Health Insurance Status")+
+  geom_line(color = "firebrick", linetype = "dotted", size = .3) +
+  ggtitle("Health Insurance By EDUCATION")
+
+
+sjPlot::plot_xtab(data$EDUC,data$HINOTCOVE,margin="row",bar.pos="stack",
+                  coord.flip=TRUE)
+
+```
+
+
+
+
+```{r}
+
+#4 Health Insurance Offer By Workplace
+
+sjPlot::tab_xtab(var.row=data$EMPHI, 
+                 var.col =data$HINOTCOVE,
+                 title = "Health Insurance Offered at  Workplace",
+                 show.row.prc = TRUE)
+
+```
+
+
+
+
+```{r}
+
+#5 Health Insurance by Sexual Orientation 
+
+sjPlot::tab_xtab(var.row=data$SEXORIEN, 
+                 var.col =data$HINOTCOVE,
+                 title = "Health Insurance by Sexual Orientation ",
+                 show.row.prc = TRUE)
+
+
+ggplot(data,
+       aes(x= SEXORIEN, y=HINOTCOVE)) +
+  geom_bar(stat = "identity", width=0.5, color="Orange") + labs(x = "Sexual Orientation", y = "Health Insurance by Sexual Orientation")+
+  geom_line(color = "firebrick", linetype = "dotted", size = .3) +
+  ggtitle("Health Insurance By Sexual Orientation")
+
+```
+
+
+
+
+```{r}
+#6 Health Insurance by Race
+
+sjPlot::tab_xtab(var.row=data$RACENEW, 
+                 var.col =data$HINOTCOVE,
+                 title = "Health Insurance By Race",
+                 show.row.prc = TRUE)
+
+ggplot(data,
+       aes(x= RACENEW, y=HINOTCOVE)) +
+  geom_bar(stat = "identity", width=0.5, color="Yellow") + labs(x = "RACE", y = "Health Insurance by Race")+
+  geom_line(color = "firebrick", linetype = "dotted", size = .3) +
+  ggtitle("Health Insurance By Race")
+
+
+
+sjPlot::plot_xtab(data$RACENEW,data$HINOTCOVE,margin="row",bar.pos="stack",
+                  coord.flip=TRUE)
+
+```
+
+
+
+
+
+
+
+```{r}
+# Health Insurance by Income
+
+ggplot(data,
+       aes(x= FAMTOTINC, y=HINOTCOVE)) +
+  geom_bar(stat = "identity", width=0.5, color="purple") + labs(x = "Income", y = "Health Insurance by Income")+
+  geom_line(color = "firebrick", linetype = "dotted", size = .3) +
+  ggtitle("Health Insurance By Income")
+
+
+
+```
+
+
+
+```{r}
+#9 Health Insurance By Health Status 
+
+
+sjPlot::tab_xtab(var.row = data$HEALTH, 
+                 var.col = data$HINOTCOVE,
+                 title = "Health Insurance By Health Status",
+                 show.row.prc = TRUE)
+
+
+
+ggplot(data, aes(x=HEALTH, y=HINOTCOVE)) + 
+  geom_bar(stat = "identity", width=0.2, color="Black")+
+  xlab("Health Condition") + 
+  ylab("Health Insurance Status")+
+  ggtitle("Health Insurance By Health Status")
+
+
+
+sjPlot::plot_xtab(data$HEALTH,data$HINOTCOVE,margin="row",bar.pos="stack",
+                  coord.flip=TRUE)
+
+
+```
+
+
+
+
+```{r}
+ggplot(data,
+       aes(x= HIMCAREE, y= HINOTCOVE)) + geom_point() + labs(x = "Medicare Status", y = "Health Insurance Status")+
+  geom_violin(draw_quantiles   = c(.25, .5, .75))+
+  geom_jitter(aes(y= HINOTCOVE,
+                  x= HIMCAREE),
+              color="Purple",
+              height = 0,
+              width=0.5, alpha=100)+
+  
+  ggtitle("Health Insurance By Medicare Status")
+
+```
+
+
+
+```{r}
+ggplot(aes(x= YRSINUSG, 
+           y= HINOTCOVE, 
+           color=YRSINUSG), data = data)+
+  geom_point()+
+  geom_smooth(method="lm", se=FALSE) + 
+  facet_wrap(~YRSINUSG + HINOTCOVE) +
+  ggtitle("Health Insurance by Years lived in the United States")
+
+```
+
+
+
+
+
+```{r}
+#Marraige Status
+sjPlot::plot_xtab(data$MARST,data$HINOTCOVE,margin="row",bar.pos="stack",
+                  coord.flip=TRUE)
+```
+
+
+
+
+
+```{r}
+# Employment Status
+
+
+sjPlot::plot_xtab(data$EMPSTAT,data$HINOTCOVE,margin="row",bar.pos="stack",
+                  coord.flip=TRUE)
+
+```
+
+
+
+
+```{r}
+ggplot(data,
+      aes(x= HISPETH, y=HINOTCOVE)) +
+  geom_point(color = "firebrick", shape = "diamond", size = 2)+ labs(x = "HISPETH", y = "HINOTCOVE")+
+  geom_line(color = "firebrick", linetype = "dotted", size = .3) +
+  ggtitle("Health Insurance by HISPETH")
+
+```
+
+
+```{r}
+ggplot(data, aes(x=HIMCAREE, y=HINOTCOVE)) + 
+  geom_bar(stat = "identity", width=0.2) +
+  ggtitle("Health insurance by RACE")
+```
+
+
+```{r}
+#Health Insurance by Sex
+ggplot(data, aes(x=SEX, y=HINOTCOVE)) + 
+  geom_bar(stat = "identity", width=0.2) +
+  ggtitle("Health insurance by sex")
+
+```
+
+
+
+
+
+```{r}
+#Health Insurance by Years in US
+
+ggplot(data, aes(fill=HINOTCOVE, y=YRSINUSG, x=HINOTCOVE)) + 
+  geom_bar(position="dodge", stat="identity") +
+  ggtitle("Health insurance by Years in US")
+```
+
+
+
+
+
+```{r}
+
+#Employer Offered Health Insurance
+ggplot(data, aes(x=EMPHI, y=HINOTCOVE)) + 
+  geom_bar(stat = "identity", width=0.2) +
+  ggtitle("Employer Offered Health Insurance")
+
+
+```
+
+
+
+
+
+
+```{r}
+# Health insuracne by Health Status
+ggplot(data, aes(fill=HINOTCOVE, y=HEALTH, x=HINOTCOVE)) + 
+  geom_bar(position="dodge", stat="identity") +
+  ggtitle("Health insurance by Health Status")
+
+```
+
+
+
+
+
+
+```{r}
+#Health Insurance by Medicaid Status
+ggplot(data, aes(x=HIMCAIDE, y=HINOTCOVE)) + 
+  geom_bar(stat = "identity", width=0.2) +
+  ggtitle("Health insurance by Health Status")
+
+
+```
+
+
+
+
+
+
+```{r}
+ggplot(data, aes(fill=HINOTCOVE, y=HIMCAIDE, x=HINOTCOVE)) + 
+  geom_bar(position="dodge", stat="identity") +
+  ggtitle("Health insurance by Health Status")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
